@@ -1,0 +1,88 @@
+import { spawn } from 'node:child_process'
+import http from 'node:http'
+
+const PORT = 9362
+
+function getJson(path) {
+  return new Promise((resolve, reject) => {
+    const req = http.get({ host: '127.0.0.1', port: PORT, path }, (res) => {
+      let data = ''
+      res.on('data', (c) => (data += c))
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data))
+        } catch {
+          reject(new Error('bad json'))
+        }
+      })
+    })
+    req.on('error', reject)
+  })
+}
+
+async function waitForTarget() {
+  for (let i = 0; i < 90; i++) {
+    try {
+      const list = await getJson('/json')
+      const page = list.find((t) => t.type === 'page')
+      if (page) return page
+    } catch {
+      /* not up yet */
+    }
+    await new Promise((r) => setTimeout(r, 1000))
+  }
+  throw new Error('no CDP target')
+}
+
+const child = spawn('npx.cmd', ['electron', '.', `--remote-debugging-port=${PORT}`], {
+  stdio: 'ignore',
+  shell: true
+})
+
+let ws
+try {
+  const page = await waitForTarget()
+  ws = new WebSocket(page.webSocketDebuggerUrl)
+  await new Promise((res, rej) => {
+    ws.onopen = res
+    ws.onerror = rej
+  })
+  const pending = {}
+  ws.addEventListener('message', (ev) => {
+    const m = JSON.parse(ev.data)
+    if (m.id && pending[m.id]) {
+      pending[m.id](m)
+      delete pending[m.id]
+    }
+  })
+  const call = (id, method, params) =>
+    new Promise((res) => {
+      pending[id] = res
+      ws.send(JSON.stringify({ id, method, params }))
+    })
+  await call(1, 'Runtime.enable', {})
+  // log the resolved path
+  const r = await call(2, 'Runtime.evaluate', {
+    expression: `(() => {
+      try {
+        const quoted = '\"C:\\\\ProgramData\\\\Microsoft\\\\Windows\\\\Start Menu\\\\Programs\\\\Peace\\\\Peace.lnk\"'.replace(/\\\\\\\\\"/g, '\\\\\"')
+        const cmd = \`powershell -NoProfile -Command (new ActiveXObject('WScript.Shell')).CreateShortcut(\${quoted}).TargetPath\`
+        const out = require('child_process').execSync(cmd, { stdio: ['pipe','pipe','pipe'], maxBuffer: 1024*64 }).toString().trim()
+        return JSON.stringify({ resolved: out || null, cmd: cmd.slice(0, 200) })
+      } catch (err) {
+        return JSON.stringify({ error: err instanceof Error ? err.message : String(err), stack: err?.stack?.slice(0,200) })
+      }
+    })()`,
+    returnByValue: true
+  })
+  console.log('RESULT:', r.result?.result?.value ?? JSON.stringify(r).slice(0, 600))
+} finally {
+  try {
+    ws?.close()
+  } catch {
+    /* noop */
+  }
+  child.kill()
+  spawn('taskkill', ['//F', '//IM', 'electron.exe'], { stdio: 'ignore' })
+  process.exit(0)
+}

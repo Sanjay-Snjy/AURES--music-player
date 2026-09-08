@@ -1,0 +1,28 @@
+appId: com.snjy.musicplayer
+productName: AURES
+copyright: Copyright © 2026 AURES
+directories:
+  buildResources: build
+  output: release
+files:
+  - out/**/*
+  - package.json
+extraResources:
+  - from: resources
+    to: .
+asar: true
+npmRebuild: false
+win:
+  executableName: AURES
+  icon: build/icon.png
+  target:
+    - target: nsis
+      arch:
+        - x64
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: AURES
+  artifactName: AURES-Setup-${version}.${ext}
