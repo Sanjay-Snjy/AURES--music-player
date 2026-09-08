@@ -85,5 +85,3 @@ src/
 
 - Files play in their native format — FLAC is never re-encoded to MP3 and quality is never
   downsampled.
-- The library is stored in `%APPDATA%/snjy/` (library.json, app-data.json, cached artwork).
-- Scanning is asynchronous and cancellable; corrupted files are skipped gracefully.
