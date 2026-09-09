@@ -42,7 +42,9 @@
 
 .btn-primary:hover {
   filter: brightness(1.08);
-  box-shadow: 0 6px 24px color-mix(in srgb, var(--dyn-1) 45%, transparent);
+  box-shadow: 0 6px 24px color-mix(in srgb, rgb(23, 106, 147) 45%, transparent);
+  background: rgb(103, 145, 228);
+
 }
 
 .btn-danger {

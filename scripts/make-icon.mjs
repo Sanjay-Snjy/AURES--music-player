@@ -1,7 +1,7 @@
 // Generates the SNJY app icon (256x256) and tray icon (32x32) as real PNG files,
 // using only Node's zlib. Run with: node scripts/make-icon.mjs
 import { deflateSync } from 'node:zlib'
-import { writeFileSync, mkdirSync } from 'node:fs'
+import { copyFileSync, mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -191,7 +191,8 @@ function drawTrayIcon(size) {
 mkdirSync(join(root, 'resources'), { recursive: true })
 mkdirSync(join(root, 'build'), { recursive: true })
 
-writeFileSync(join(root, 'resources', 'icon.png'), encodePng(256, drawAppIcon(256)))
-writeFileSync(join(root, 'build', 'icon.png'), encodePng(256, drawAppIcon(256)))
-writeFileSync(join(root, 'resources', 'tray.png'), encodePng(32, drawTrayIcon(32)))
-console.log('Icons written to resources/icon.png, resources/tray.png, build/icon.png')
+const assets = join(root, 'src', 'renderer', 'src', 'assets')
+copyFileSync(join(assets, 'icon.png'), join(root, 'resources', 'icon.png'))
+copyFileSync(join(assets, 'icon.png'), join(root, 'build', 'icon.png'))
+copyFileSync(join(assets, 'tray.png'), join(root, 'resources', 'tray.png'))
+console.log('Icons copied from src/renderer/src/assets to resources/ and build/')

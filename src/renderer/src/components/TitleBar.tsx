@@ -1,7 +1,7 @@
 import { Loader2, Search } from 'lucide-react'
 import { useLibrary } from '@renderer/store/library'
 import { useUi } from '@renderer/store/ui'
-import logoUrl from '@renderer/assets/logo.png'
+import logoUrl from '@renderer/assets/icon.png'
 
 export function TitleBar(): React.JSX.Element {
   const scanning = useLibrary((s) => s.scanning)
