@@ -710,7 +710,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 46px 8px 52px 8px;
+  padding: 46px 8px 40px 8px;
   background: rgba(0, 0, 0, 0.229);
   border: none;
   color: var(--text-1);
